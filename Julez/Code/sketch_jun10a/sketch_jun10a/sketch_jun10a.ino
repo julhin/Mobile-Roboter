@@ -24,7 +24,17 @@ int findTick(int side, int* odoData) {
         return 1;
       }
       break;
-    case black: // values are high
+    case black:
+    if(odoData[side] > lasVal[side]+ 140){
+      lastVal[side] = odoData[side];
+      else if (odoData[side] < (lastVal[side] + 140)){
+         lastVal[side] = odoData[side];
+         Enc_state [side] =  white;
+         encoderValues[side] ++;
+         retuen 1;
+      }
+      break;
+    }
     
   }
   return 0;
