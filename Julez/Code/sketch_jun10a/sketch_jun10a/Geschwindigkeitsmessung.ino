@@ -58,7 +58,7 @@ void setup() {
   delay(200);
   Serial.begin(2400);
   delay(200);
-  asuro.setMotorSpeed(255,255);
+  asuro.setMotorSpeed(100,100);
 }
 
 void loop() {
