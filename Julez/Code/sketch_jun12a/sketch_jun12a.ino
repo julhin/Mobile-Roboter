@@ -1,22 +1,27 @@
 #include <Asuro.h>
 
-unsigned int speed [2];
-unsigned int line_sensors[2];
-*int controlSpeed(){
-readLinesensor(line_sensors);
+ Asuro asuro = Asuro();
+unsigned int current_speed [2];
+int line_sensors[2];
+
+ void controlSpeed(){
+asuro.readLinesensor(line_sensors);
+
 /* if the sensors are more than 140 away  from each other, one sees black and the other sees black */
-if (abs(line_sensors[0] - line_sensors[1]) < 100){
-  if (line_sensors[0] < line_sensor[1]){
+int temp = line_sensors[0] - line_sensors[1] ;
+ temp = abs(temp);
+if (temp < 20){
+  if (line_sensors[0] < line_sensors[1]){
     /* left speed must be faster */
-    speed[0] = 200;
-    speed[1] = 100;
+   current_speed[0] = 20;
+   current_speed[1] = 10;
     
-  }else if (line_sensors[0] > line_sensor[1]){
-     speed[0] = 200;
-    speed[1] = 100;
+  }else if (line_sensors[0] > line_sensors[1]){
+    /* right  has to be faster */
+    current_speed[0] = 10;
+    current_speed[1] = 20;
   }
 }
-  
 }
 
 void setup() {
@@ -24,10 +29,16 @@ void setup() {
   delay(200);
   Serial.begin(2400);
   delay(200);
-
+ asuro.setMotorDirection(FWD,FWD);
+ current_speed[1] = 20;
+ current_speed[0] = 20;
+ 
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-
+  
+  asuro.setMotorSpeed(20,20);
+  while(1);
+  controlSpeed();
+  asuro.setMotorSpeed (current_speed [0], current_speed[1]); 
 }

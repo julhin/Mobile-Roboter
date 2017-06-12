@@ -5,7 +5,7 @@ usigned long time;
 unsigned int odoData[2];
 enum Enc_state {black,white};
 unsigned int encoderValues [2];
-
+int odoThrehshold = 140;
 
 int findTick(int side, int* odoData) {
   
@@ -25,7 +25,7 @@ int findTick(int side, int* odoData) {
       }
       break;
     case black:
-    if(odoData[side] > lasVal[side]+ 140){
+    if(odoData[side] > lasVal[side]){
       lastVal[side] = odoData[side];
       else if (odoData[side] < (lastVal[side] + 140)){
          lastVal[side] = odoData[side];
@@ -53,10 +53,12 @@ Serial.print('\n');
 }
 
 void setup() {
+  /* for stability some delays */
  asuro.Init();
   delay(200);
   Serial.begin(2400);
   delay(200);
+  asuro.setMotorSpeed(255,255);
 }
 
 void loop() {
