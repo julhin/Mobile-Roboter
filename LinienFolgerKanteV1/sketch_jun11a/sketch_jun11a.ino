@@ -91,7 +91,7 @@ void loop() {
   asuro.setMotorSpeed(wheelSpeed[0], wheelSpeed[1]); 
   asuro.readLinesensor(lineData);
   asuro.readLinesensor(oldLineData);
-  asuro.setBackLED(ON,OFF);
+  asuro.setBackLED(ON,ON);
 
   /**
    * actual program!
