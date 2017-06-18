@@ -41,7 +41,7 @@ asuro.Init();
  Serial.begin(2400);
  delay(200);
  asuro.setMotorDirection(FWD,FWD);
-  asuro.setMotorSpeed (BASE,BASE);
+ asuro.setMotorSpeed(BASE,BASE);
   delay(2000);
 }
 
