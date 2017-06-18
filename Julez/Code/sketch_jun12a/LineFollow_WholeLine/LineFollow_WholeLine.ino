@@ -9,6 +9,7 @@ int line_sensors[2];
 
  void controlSpeed(){
 /* if the sensors are more than 20 away  from each other, one sees black and the other sees black */
+asuro.readLinesensor(line_sensors);
 int temp = line_sensors[0] - line_sensors[1] ;
  temp = abs(temp);
 if (temp > 20){

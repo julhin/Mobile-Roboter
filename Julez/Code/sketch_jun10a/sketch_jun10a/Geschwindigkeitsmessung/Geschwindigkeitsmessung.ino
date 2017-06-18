@@ -1,7 +1,7 @@
 #include <Asuro.h>
 
 Asuro asuro = Asuro();
-usigned long time;
+unsigned long time;
 unsigned int odoData[2];
 enum Enc_state {black,white};
 unsigned int encoderValues [2];
@@ -42,9 +42,10 @@ int findTick(int side, int* odoData) {
 
 void calculateSpeed(int side){
 unsigned long current_time = millis();
-int speed ;
+float speed ;
 if ((current_time - time) > 100){
   // i suppose ticks * 0,3 are m/s
+  findTick(side, odoData);
    speed = encoderValues[side] * 0.3
    time = current_time;
 }
