@@ -3,6 +3,10 @@
 #define HELL 0
 #define DUNKEL 1
 #define SEGMENTE 40
+#define MAXSPEED 120
+#define PGAIN 2
+#define SCHWELLWERT 80
+
 
 Asuro asuro = Asuro();
 
@@ -21,10 +25,11 @@ Asuro asuro = Asuro();
   unsigned int odo_data[2];     // Speicher für Odometriesensoren bereitstellen
   struct umdrehung links = {0,0, 0, DUNKEL, 0};
   struct umdrehung rechts = {0, 0, 0, DUNKEL, 0};
-  unsigned int schwellenwert = 80; //Sinnvoller Wert nach erhobenen Daten
+  
+  
 
  /*
-  * Methode zur Berechnung des aktuellen Winkels
+  * Methode zur Berechnung des aktuellen Winkels beziehungweie der ticks
   */
  void berechneWinkel(struct umdrehung *rad, int identifier){  // identifier 0 = linkes Rad, 1 = rechtes Rad
     asuro.readOdometry(odo_data);  // Odometrie auslesen fuer ein Rad
@@ -47,7 +52,7 @@ Asuro asuro = Asuro();
     unsigned int diff = rad->lastMax_val - odo_data[identifier]; // Differenz berechnen
     diff = abs(diff);
     
-   if (diff > schwellenwert){  //wenn ja, dann Übergang!
+   if (diff > SCHWELLWERT){  //wenn ja, dann Übergang!
     
       /*  Zurücksetzen wird nur bei Winkelmessung benutzt
       if (rad->encoder_ticks == SEGMENTE){
@@ -70,20 +75,26 @@ void setup() {
     asuro.Init();
     Serial.begin(2400);
 
+   
+    
+    
+
 }
 
 void loop() {
       asuro.setMotorDirection(FWD,FWD);
-      asuro.setMotorSpeed(100,100);
+      asuro.setMotorSpeed(MAXSPEED,MAXSPEED);
+      int diff;
       
     while(1){
      berechneWinkel(&links,0);
       berechneWinkel(&rechts,1);
+      diff = links.encoder_ticks - rechts.encoder_ticks;
    
-      if(links.encoder_ticks < rechts.encoder_ticks){
-        asuro.setMotorSpeed(100,80);
+      if(diff < 0 ){
+        asuro.setMotorSpeed(MAXSPEED + PGAIN*diff,MAXSPEED - PGAIN*diff);
       }else{
-        asuro.setMotorSpeed(80,100);
+        asuro.setMotorSpeed(MAXSPEED - PGAIN*diff,MAXSPEED + PGAIN*diff);
       }
 
     }
