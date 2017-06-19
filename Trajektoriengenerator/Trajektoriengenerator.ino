@@ -68,7 +68,7 @@ void positionsRegler(int geschwindigkeit) {
     }else{
     asuro.setMotorSpeed(MAXSPEED - odoDiff + speedDiff,MAXSPEED + odoDiff + speedDiff);
     }
-    Serial.println(MAXSPEED + odoDiff + speedDiff);
+    //Serial.println(MAXSPEED + odoDiff + speedDiff);
 
 }
 
