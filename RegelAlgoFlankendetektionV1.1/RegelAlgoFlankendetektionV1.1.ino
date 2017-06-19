@@ -90,7 +90,10 @@ void loop() {
      berechneWinkel(&links,0);
       berechneWinkel(&rechts,1);
       diff = links.encoder_ticks - rechts.encoder_ticks;
-   
+
+      /**
+       * Hier ist der eigentliche P-Regler
+       */
       if(diff < 0 ){
         asuro.setMotorSpeed(MAXSPEED + PGAIN*diff,MAXSPEED - PGAIN*diff);
       }else{
