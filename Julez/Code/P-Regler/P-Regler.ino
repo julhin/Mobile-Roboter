@@ -1,7 +1,7 @@
 #include <Asuro.h>
 /* Values need adjustment*/
 #define BASE 100
-//#define FACTOR 3
+#define FACTOR 3
 //#define SWITCH_BLACK_WHITE 23
 Asuro asuro = Asuro();
 /*global values */
@@ -11,17 +11,20 @@ Asuro asuro = Asuro();
 
 //unsigned int odo_data [2];
 int line_data [2];
-//unsigned int speed_data[2];
-
+unsigned int speed_data[2];
+double gain;
 /*alle benötigten Informationen sind vorhanden */
-void p_Regler(){
-asuro.readLinesensor(line_data);
+void p_Regler(int side){
 
-int diff = line_data[0] - line_data[1];
-int leftSpeed = BASE + diff ;
-int rightSpeed = BASE - diff;
+int e; 
+e = calcGain();
+speed_data[side] = e * KP
 
-asuro.setMotorSpeed(leftSpeed, rightSpeed);
+
+}
+
+int calcGain(){
+  
 }
 /*
 void measureDelta(){
@@ -49,7 +52,9 @@ void loop() {
   asuro.setMotorDirection(FWD,FWD);
   asuro.setMotorSpeed (BASE,BASE);
 while(1){
-  p_Regler();
+  p_Regler(0);
+  p_regler(1);
+  asuro.setMotorSpeed(speed_datga[0], speed_data[1]);
 }
 
 }
