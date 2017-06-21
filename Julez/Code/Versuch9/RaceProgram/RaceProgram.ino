@@ -28,13 +28,12 @@ void task_scanBarcode(){
   b_state = BRIGHT;
   while(1){
     // vorwärts fahren, 100 ms 
-    
     asuro.setMotorDirection(FWD,FWD);
     asuro.setMotorSpeed (120,120);
     // sensoren auslesen und  
     asuro.readLinesensor(line_data);
     if (counting_ticks){
-      
+     //
     }
     // MAxValues updaten falls notwendig
     if (line_data[0] < maxVal[0]) maxVal[0] = line_data[0];
@@ -44,23 +43,30 @@ void task_scanBarcode(){
     int temp = line_data[0] - line_data[1];
   int temp = abs(temp);
    if ( temp > THRESHOLD ){ // Switch happened
-    if (b_state == DARK){ // war schwarz, wird wieder weiß , zähle Barcode Strich
+    
+    switch (b_state){ // war schwarz, wird wieder weiß , zähle Barcode Strich
+    case DARK:
     barcodeCount++;
     counting_ticks = true;
     b_state = BRIGHT;
-    }
-    else if (b_state == BRIGHT) { 
+    break;
+    
+    case: BRIGHT // wechsel zu schwarz
       if (ticksSinceLastDark > 25 ){
         b_state = END;
-        break;
+        break;  
       } else {
-        
+        ticksSinceLastDark = 0;
+        countingTicks = false;
+        b_state = DARK;
+        continue;
       }
-      
-    }
+      break;  
   }
   }
   // blinkNTimes
+  // ASURO anhalten
+  asuro.setMotorSpeed(0,0);
   for (int i =0; i < barCodeCount; i++){
     asuro.setBackLED(ON,ON);
     delay(200);
@@ -69,6 +75,54 @@ void task_scanBarcode(){
   task_searchLine();
 }
 
+void task_searchLine(){
+  //sensoren überprüfen ob di eline verloren wurde 
+
+  // linie rechts suchen 
+  
+  // falls gefunden => taks_followLine
+
+  // falls nicht => Zurückfahren
+  
+  // linie links suchen 
+  
+  // falls gefunden => taks_followLine
+
+  // falls nicht => Zurückfahren
+  
+  // task_scanBarcode() aufrufen
+
+  
+}
+// TODO: make this method work
+void fahre90GradLinks(){
+
+    links.encoder_ticks=0;  //reset
+     rechts.encoder_ticks=0;     
+        asuro.setMotorDirection(FWD,FWD);
+        asuro.setMotorSpeed(0,MAXSPEED);
+     unsigned int encoderTicksSoll = 40;
+     unsigned int encoderTicksHaben = 0; 
+     while(encoderTicksHaben < encoderTicksSoll){
+     berechneWinkel(&rechts,1); 
+      encoderTicksHaben = rechts.encoder_ticks;
+     
+    }
+// TODO: make thismethod work
+void fahre90GradRechts(){
+
+    links.encoder_ticks=0;  //reset
+     rechts.encoder_ticks=0;   
+        asuro.setMotorDirection(FWD,FWD);
+        asuro.setMotorSpeed(MAXSPEED,0);
+     unsigned int encoderTicksSoll = 40;
+     unsigned int encoderTicksHaben = 0;   
+     while(encoderTicksHaben < encoderTicksSoll){
+     berechneWinkel(&rechts,1);
+      encoderTicksHaben = rechts.encoder_ticks;
+    }
+
+    
 void setup() {
    asuro.Init();
   delay(200);
