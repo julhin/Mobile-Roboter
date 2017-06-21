@@ -1,12 +1,3 @@
-#include <Asuro.h>
-Asuro asuro = Asuro();
-
-unsigned int line_data[2];
-
-void followLine(){
-  
-}
-
 void setup() {
   // put your setup code here, to run once:
 
