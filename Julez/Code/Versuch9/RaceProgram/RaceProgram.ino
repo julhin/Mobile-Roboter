@@ -8,7 +8,7 @@ STATE state;
 
 
 // global variables 
-usigne dint line_data[2];
+usigned int line_data[2];
 unsigned int last_line_data[2];
 unsigned int maxVal [2];
 
@@ -20,6 +20,9 @@ int ticksSinceLastDark;
 enum BARCODESTATE {BRIGHT,DARK,END};
 BARCODESTATE b_state;
 
+// serachline Variablen
+bool lineFound;
+
 
 void task_scanBarcode(){
   if(  state != scanBarcode) return;
@@ -29,6 +32,7 @@ void task_scanBarcode(){
   while(1){
     // vorwärts fahren, 100 ms 
     asuro.setMotorDirection(FWD,FWD);
+    //pregler zum Motorspeed
     asuro.setMotorSpeed (120,120);
     // sensoren auslesen und  
     asuro.readLinesensor(line_data);
@@ -64,6 +68,7 @@ void task_scanBarcode(){
       break;  
   }
   }
+  }
   // blinkNTimes
   // ASURO anhalten
   asuro.setMotorSpeed(0,0);
@@ -74,33 +79,44 @@ void task_scanBarcode(){
   }
   task_searchLine();
 }
-
+transition_scanBarcode(){
+  // set the state
+  // stop the Motor
+  asuro.setMotorDirection(FWD,FWD);
+  asuro.setMotorSpeed(0,0);
+  // reset all variables
+  ticksSinceLastDark= 0;
+  state = scanBarcode;
+  barcodeCount = 0;
+   
+}
 void task_searchLine(){
-  //sensoren überprüfen ob di eline verloren wurde 
-
-  // linie rechts suchen 
+  //sensoren überprüfen ob die linie verloren wurde 
   
+  // linie rechts suchen, die Mehtode sucht auch die Linie
+  fahre90GradRechts();
   // falls gefunden => taks_followLine
-
+  if(lineFound) transition_FollowLine();
   // falls nicht => Zurückfahren
-  
+  fahre90GradRechtsZurück();
   // linie links suchen 
-  
+  fahre90GradLinks();
   // falls gefunden => taks_followLine
-
+ if(lineFound) transition_FollowLine();
   // falls nicht => Zurückfahren
-  
+  fahre90GradLinksZurück();
+  // ich steh vor einem Barcode
   // task_scanBarcode() aufrufen
-
+  transition_scanBarcode();
   
 }
 // TODO: make this method work
 void fahre90GradLinks(){
 
     links.encoder_ticks=0;  //reset
-     rechts.encoder_ticks=0;     
-        asuro.setMotorDirection(FWD,FWD);
-        asuro.setMotorSpeed(0,MAXSPEED);
+    rechts.encoder_ticks=0;     
+    asuro.setMotorDirection(FWD,FWD);
+     asuro.setMotorSpeed(0,MAXSPEED);
      unsigned int encoderTicksSoll = 40;
      unsigned int encoderTicksHaben = 0; 
      while(encoderTicksHaben < encoderTicksSoll){
@@ -108,9 +124,10 @@ void fahre90GradLinks(){
       encoderTicksHaben = rechts.encoder_ticks;
      
     }
-// TODO: make thismethod work
-void fahre90GradRechts(){
 
+}// TODO: make thismethod work
+void fahre90GradRechts(){
+    asuro.readLinesensor(last_line_data);
     links.encoder_ticks=0;  //reset
      rechts.encoder_ticks=0;   
         asuro.setMotorDirection(FWD,FWD);
@@ -120,9 +137,11 @@ void fahre90GradRechts(){
      while(encoderTicksHaben < encoderTicksSoll){
      berechneWinkel(&rechts,1);
       encoderTicksHaben = rechts.encoder_ticks;
+      asuro.readLinesensor(line_data);
+      
     }
 
-    
+}
 void setup() {
    asuro.Init();
   delay(200);
