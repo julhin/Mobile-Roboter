@@ -2,6 +2,8 @@
 #include <Asuro.h>
 #define HELL 0
 #define DUNKEL 1
+#define MAXSPEED 120
+#define PGAIN 1
 
 Asuro asuro = Asuro();
 
@@ -27,24 +29,24 @@ Asuro asuro = Asuro();
  void berechneWinkel(struct umdrehung *rad, int identifier){  // identifier 0 = linkes Rad, 1 = rechtes Rad
     asuro.readOdometry(odo_data);  // Odometrie auslesen fuer ein Rad
     rad->farbeNeu = odo_data[identifier]; //identifier für linken/rechten Sensor
-    
+    /*Serial.print("farbeNeu ");
+    Serial.println(rad->farbeNeu);
+      Serial.print("farbeMittelwert ");
+    Serial.println(rad->farbeMittelwert);
+      Serial.print("Flag: ");
+    Serial.println(rad->flag);
+    Serial.println();*/
    if((rad->farbeNeu > rad->farbeMittelwert) && (rad->flag == DUNKEL)){
-     if (rad->uebergaenge == 40){
-      rad->uebergaenge = 0;
-      rad->winkel = 0;
-     }
+     
      rad->uebergaenge += 1;
-     rad->winkel +=9;
+     //rad->winkel +=9;
      rad->flag = HELL;
 
    }
    else if((rad->farbeNeu < rad->farbeMittelwert) && (rad->flag == HELL)){
-      if (rad->uebergaenge == 40){
-      rad->uebergaenge = 0;
-      rad->winkel = 0;
-     }
+       
       rad->uebergaenge += 1;
-      rad->winkel +=9;
+      //rad->winkel +=9;
       rad->flag = DUNKEL;
 
    }
@@ -60,7 +62,7 @@ void setup() {
      unsigned long aktZeit = millis();
      unsigned long tmpStartzeit = millis();
      asuro.setMotorDirection(FWD,FWD);
-     asuro.setMotorSpeed(150,150);
+     asuro.setMotorSpeed(MAXSPEED,MAXSPEED);
      unsigned long tempMittelwertLinks = 0;
      unsigned long counter = 0;
      unsigned long tempMittelwertRechts = 0;
@@ -72,7 +74,7 @@ void setup() {
         asuro.readOdometry(odo_data);
       
         tempMittelwertLinks += odo_data[0];
-        counter++;
+        
 
         tempMittelwertRechts += odo_data[1];
         counter++;
@@ -84,6 +86,12 @@ void setup() {
      */
     links.farbeMittelwert = tempMittelwertLinks/counter;
     rechts.farbeMittelwert = tempMittelwertRechts / counter;
+    /*Serial.print("rechter Mittelwert ");
+    Serial.println(rechts.farbeMittelwert);
+
+     Serial.print("linker Mittelwert ");
+    Serial.println(links.farbeMittelwert);*/
+
     
    
     asuro.setMotorSpeed(0,0);
@@ -95,11 +103,20 @@ void setup() {
 }
 
 void loop() {
-      asuro.setMotorSpeed(80,80);
+      asuro.setMotorSpeed(MAXSPEED,MAXSPEED);
+      int diff;
       
     while(1){
       berechneWinkel(&links,0);
       berechneWinkel(&rechts,1);
+    
+      diff = links.uebergaenge - rechts.uebergaenge;
+      
+      if(diff < 0 ){
+        asuro.setMotorSpeed(MAXSPEED + PGAIN*diff,MAXSPEED - PGAIN*diff);
+      }else{
+        asuro.setMotorSpeed(MAXSPEED - PGAIN*diff,MAXSPEED + PGAIN*diff);
+      }
 
     }
 

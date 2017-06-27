@@ -17,17 +17,17 @@ unsigned int current_speed [2];
    if (diff < STRAIGHT_DRIVING  ){
      current_speed[0]= SPEED;
      current_speed[1]= SPEED;
-   } else if (line_sensors[0] < line_sensors[1] && line_sensors[1] > BLACK){
-     // the left sensor is on white, while right sensor is on black
-     // right need to be braked
+     
+   } else if (line_sensors[0] < line_sensors[1] ){
      current_speed[0]= SPEED + SPEED_ALTERING_VALUE;
      current_speed[1]= SPEED - SPEED_ALTERING_VALUE;
-   } else if (line_sensors[0] > line_sensors[1] && line_sensors[0] > BLACK){
+     
+   } else if (line_sensors[0] > line_sensors[1] ){
    current_speed[0]= SPEED - SPEED_ALTERING_VALUE;
    current_speed[1]= SPEED + SPEED_ALTERING_VALUE;
+   
  } else if (line_sensors[0] < WHITE && line_sensors[1] < WHITE){
- // line lost
-      findLineAgain();
+  findLineAgain();
  }
  }
 

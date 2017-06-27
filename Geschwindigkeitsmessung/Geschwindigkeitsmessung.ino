@@ -1,4 +1,3 @@
- 
 #include <Asuro.h>
 #define HELL 0
 #define DUNKEL 1
