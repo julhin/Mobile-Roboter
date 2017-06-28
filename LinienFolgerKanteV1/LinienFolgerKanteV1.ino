@@ -3,7 +3,7 @@
 /**
  * Those values need to be improved!
  */
-#define MAX_SPEED 130
+#define MAX_SPEED 100
 #define BREAK_DELTA 60
 #define LIGHT_DELTA 110 //has to be improved empiricallly
 
