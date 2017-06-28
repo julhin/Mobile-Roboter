@@ -64,8 +64,10 @@ void positionsRegler(int geschwindigkeit) {
    int speedDiff = (KMH - geschwindigkeit)*PGAINKMH;
     // Hier ist der eigentliche P-Regler der Odometrie
     if(odoDiff < 0 ){
+    odoDiff = abs(odoDiff);  
     asuro.setMotorSpeed(MAXSPEED + odoDiff + speedDiff,MAXSPEED - odoDiff + speedDiff);
     }else{
+    odoDiff = abs(odoDiff);
     asuro.setMotorSpeed(MAXSPEED - odoDiff + speedDiff,MAXSPEED + odoDiff + speedDiff);
     }
     //Serial.println(MAXSPEED + odoDiff + speedDiff);

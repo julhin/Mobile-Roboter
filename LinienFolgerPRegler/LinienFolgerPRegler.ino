@@ -1,7 +1,7 @@
 #include <Asuro.h>
 
-#define MAX_SPEED 100
-#define PGAIN 4  //has to be improved empirically
+#define MAX_SPEED 80
+#define PGAIN 1  //has to be improved empirically
 #define FORWARD_DELTA 20
 
   Asuro asuro = Asuro();
