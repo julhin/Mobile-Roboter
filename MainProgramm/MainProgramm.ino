@@ -1,7 +1,8 @@
 #include <Asuro.h>
 #define WHITETHRESHOLD 800  //has to be improved
+#define BARCODETHRESHOLD 450
 #define MINLINECONTRAST 80
-#define BARCODECONTRAST 50
+#define BARCODECONTRAST 30
 #define ODOTHRESHOLD 80
 #define BRIGHT 0
 #define DARK 1
@@ -59,6 +60,7 @@ struct wheel right = {0, 0, DARK};
 void driveStraight(){
     calculateTicks(&left,0);
     calculateTicks(&right,1);
+    asuro.setMotorDirection(FWD,FWD);
     int diff = left.encoder_ticks - right.encoder_ticks;
     //Speed regeln
     if(diff < 0 ){
@@ -142,7 +144,12 @@ boolean turnRightAndScanForLine(int leftwheel,int rightwheel){
  * Repeat procedure till line is found
  */
 void task_findLine(){
-  current_state = stop;
+  left.encoder_ticks=0;  //reset
+  right.encoder_ticks=0;
+ while(isOnLine() == 0){
+  driveStraight();
+ }
+ current_state = followLine;
 }
 
 void task_followLine(){
@@ -219,7 +226,7 @@ boolean isOnBarcode(){
    asuro.readLinesensor(lineData);
    int diff = lineData[0] - lineData[1];
    diff = abs(diff);
-   if((lineData[0] + lineData[1]) < WHITETHRESHOLD && diff < BARCODECONTRAST) {   //TODO: Werte anpassen
+   if((lineData[0] + lineData[1]) < BARCODETHRESHOLD && diff < BARCODECONTRAST) {   //TODO: Werte anpassen
   // Serial.println("Ist auf Barcode");
   // delay(1000);
    return true;
@@ -246,7 +253,7 @@ boolean driveStraightAndScanForBarcode(unsigned int cm){
    while(encoderTicksCurrentValue < encoderTicksDesiredValue){
     if(isOnBarcode()) { 
     //Serial.print("Innerhalb driveStraight: ");
-    //Serial.println(isOnBarcode());
+    //Serial.println("isOnBarcode");
     return true;
     }
     driveStraight();
@@ -261,7 +268,7 @@ boolean driveStraightAndScanForBarcode(unsigned int cm){
 void crossBarcode(){
    left.encoder_ticks=0;  //reset
    right.encoder_ticks=0;
-   driveStraightCentimeter(3);
+   driveStraightCentimeter(4);
    
  }
 
@@ -304,7 +311,7 @@ void task_scanBarcode(){
 }
 
 void task_blinkNTimes(){
-  Serial.println(barCount);
+  //Serial.println(barCount);
   asuro.setMotorDirection(BREAK,BREAK);
   if(barCount == 1){
     asuro.setBackLED(ON,ON);
