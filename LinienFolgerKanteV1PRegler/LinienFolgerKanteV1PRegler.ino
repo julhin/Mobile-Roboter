@@ -3,40 +3,19 @@
 /**
  * Those values need to be improved!
  */
-#define MAX_SPEED 130
-#define BREAK_DELTA 60
+#define MAX_SPEED 80
 #define LIGHT_DELTA 110 //has to be improved empiricallly
+#define PGAIN 0.5  //has to be improved empirically
 
   Asuro asuro = Asuro();
-
-
-
-
-  /**
-   * This function slows down a wheel (by using a break_delta vlaue) and
-   * sets  the speed of the other wheel to max_speed
-   * identifier = 0: left Wheel will be breaked
-   * identifier = 1: right Wheel will be breaked
-    */
- void breakWheel(unsigned int wheelSpeed[], unsigned int identifier){
-
-    if (wheelSpeed[identifier] > BREAK_DELTA){
-      wheelSpeed[identifier] -= BREAK_DELTA;  // decelerate Wheel
-
-    } else {
-     wheelSpeed[identifier] = 0;  // to prevent underflow
-    }
-
-    wheelSpeed[(identifier + 1)%2] = MAX_SPEED;  //change the speed of the other wheel to max speed
-  }
-
+ 
 
   /**
    * this function is a three-step-controler
-   *  - drive a left turn
+   *  - drive a left turn 
    *  - drive a right turn
    *  - drive straight forward
-   *
+   *  
    */
   void lineFollower(unsigned int lineData[],unsigned int oldLineData[], unsigned int wheelSpeed[]){
     int diff = lineData[0] - lineData[1];
@@ -52,23 +31,34 @@
       oldLineData[1] = lineData[1];
 
      /*
-      * delta to small!   no line detected so old sensor values need to
+      * delta to small!   no line detected so old sensor values need to 
       * be compared in order to do a left or a right turn!
       * Important: old values only get ovrewritten, if asuro is following the line!
       */
      }else{
         if(oldLineData[0] > oldLineData[1]){      // check previous calculation
-          breakWheel(wheelSpeed,1 );              //right turn / break right wheel
-          asuro.setBackLED(OFF,ON);
+              
+          wheelSpeed[0] = MAX_SPEED + PGAIN*diff;  //right turn / break right wheel
+          wheelSpeed[1] = MAX_SPEED - PGAIN*diff;
+          asuro.setBackLED(OFF,ON);     
+          /*Serial.print("Wheelspeed links: ") ;
+          Serial.println(wheelSpeed[0]);
+          Serial.print("Wheelspeed rechts: ") ;
+          Serial.println(wheelSpeed[1]);*/
         }else{
-           breakWheel(wheelSpeed,0);             //left turn / break left wheel
-            asuro.setBackLED(ON,OFF);
+         wheelSpeed[0] = MAX_SPEED - PGAIN*diff;
+         wheelSpeed[1] = MAX_SPEED + PGAIN*diff;           //left turn / break left wheel
+         asuro.setBackLED(ON,OFF);
+          /*Serial.print("Wheelspeed links: ") ;
+          Serial.println(wheelSpeed[0]);
+          Serial.print("Wheelspeed rechts: ") ;
+          Serial.println(wheelSpeed[1]);*/
         }
-
-
-     }
+                 
+       
+     } 
   }
-
+  
 
 void setup() {
 
@@ -86,9 +76,9 @@ void loop() {
   unsigned int wheelSpeed[2]; //wheelSpeed[0] = left wheel, wheelSpeed[1] =  right wheel
   unsigned int lineData[2];
   unsigned int oldLineData[2];
-  wheelSpeed[0] = MAX_SPEED;
-  wheelSpeed[1] = MAX_SPEED;
-  asuro.setMotorSpeed(wheelSpeed[0], wheelSpeed[1]);
+  wheelSpeed[0] = MAX_SPEED;  
+  wheelSpeed[1] = MAX_SPEED; 
+  asuro.setMotorSpeed(wheelSpeed[0], wheelSpeed[1]); 
   asuro.readLinesensor(lineData);
   asuro.readLinesensor(oldLineData);
   asuro.setBackLED(ON,ON);
