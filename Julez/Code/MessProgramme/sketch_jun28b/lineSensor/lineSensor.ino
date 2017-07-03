@@ -16,11 +16,16 @@ void setup(){
 void loop(){
 
   while(1){
+    for(int i = 0; i < 100; i++){
     asuro.readLinesensor(line_data);
+
     Serial.print(line_data[0]);
     Serial.print(",");
+  
     Serial.print(line_data[1]);
     Serial.print("\n");
     delay(1000);
   }
+
+}
 }
