@@ -2,23 +2,22 @@
 #define WHITETHRESHOLD 800  //has to be improved
 #define BARCODETHRESHOLD 450
 #define MINLINECONTRAST 80
-#define BARCODECONTRAST 10
-#define ODOTHRESHOLD 120
+#define BARCODECONTRAST 20
+#define ODOTHRESHOLD 130
 #define BRIGHT 0
 #define DARK 1
 #define SEGMENTS 40
 #define WHEELPERIMETER 12
-#define MAXSPEED 170
-#define MAXSPEEDTURN 150
-
-#define MAXSPEEDBARCODE 200
+#define MAXSPEED 220
+#define MAXSPEEDTURN 170
+#define MAXSPEEDBARCODE 170
 #define PGAINFORWARD 2
-#define BARCODEDISTANCE 5
+#define BARCODEDISTANCE 4
 
 #define BREAKDELTA 120
 
 Asuro asuro = Asuro();
-enum STATES{followLine, searchLine,scanBarcode, blinkNTimes,stop, findLine, error};
+enum STATES{followLine, searchLine,scanBarcode, blinkNTimes,stop, findLine, error, searchTimber};
 
 struct wheel {    // Struct for saving the state of the wheels
   unsigned int lastMax_val;      // Maxiler Hell ODER DUnkel Wert der letzten Messungen
@@ -60,29 +59,37 @@ void calculateTicks(struct wheel *rad, int identifier){  // identifier 0 = left 
   rad->flag = (rad->flag + 1)%2; //wird von 0 auf 1 oder von 1 auf 0 gesetzt
    }
  }
-void driveStraight(int givenSpeed){
+void driveStraight(int givenSpeed, int dir){
   calculateTicks(&left,0);
   calculateTicks(&right,1);
-  asuro.setMotorDirection(FWD,FWD);
+  asuro.setMotorDirection(dir,dir);
   int diff = left.encoder_ticks - right.encoder_ticks;
   //Speed regeln
   if(diff < 0 ){
   diff = abs(diff);
+  if(givenSpeed + PGAINFORWARD*diff > 250){
+     asuro.setMotorSpeed(250,givenSpeed - PGAINFORWARD*diff);
+     return;
+  }
   asuro.setMotorSpeed(givenSpeed + PGAINFORWARD*diff,givenSpeed - PGAINFORWARD*diff);
   }else{
   diff = abs(diff);
+  if(givenSpeed + PGAINFORWARD*diff > 250){
+    asuro.setMotorSpeed(givenSpeed - PGAINFORWARD*diff,250);
+    return;
+  }
   asuro.setMotorSpeed(givenSpeed - PGAINFORWARD*diff,givenSpeed + PGAINFORWARD*diff);
   }       
 }
 
-void driveStraightCentimeter(unsigned int cm, int givenSpeed){
+void driveStraightCentimeter(unsigned int cm, int givenSpeed, int dir){
   left.encoder_ticks=0;  //reset
   right.encoder_ticks=0;
  
   unsigned int encoderTicksDesiredValue = (SEGMENTS / WHEELPERIMETER) * cm;
   unsigned int encoderTicksCurrentValue = 0;
   while(encoderTicksCurrentValue < encoderTicksDesiredValue){
-   driveStraight(givenSpeed);
+   driveStraight(givenSpeed, dir);
    encoderTicksCurrentValue = ((left.encoder_ticks) + (right.encoder_ticks)) / 2;
   }
 }
@@ -136,7 +143,7 @@ void task_findLine(){
   left.encoder_ticks=0;  //reset
   right.encoder_ticks=0;
   while(isOnLine() == 0){
-  driveStraight(MAXSPEED);
+  driveStraight(MAXSPEED, FWD);
  }
  current_state = followLine;
 }
@@ -159,7 +166,7 @@ void task_followLine(){
  asuro.setMotorDirection(FWD,FWD);
  asuro.setMotorSpeed(MAXSPEED,MAXSPEED);
  }else{
-  asuro.setMotorDirection(BREAK,BREAK);
+  //asuro.setMotorDirection(BREAK,BREAK); #####################################################
   current_state = searchLine;
  }
 }
@@ -227,7 +234,7 @@ boolean driveStraightAndScanForBarcode(unsigned int cm){
     if(isOnBarcode()) { 
     return true;
     }
-    driveStraight(MAXSPEEDBARCODE);
+    driveStraight(MAXSPEEDBARCODE, FWD);
     encoderTicksCurrentValue = ((left.encoder_ticks) + (right.encoder_ticks)) / 2;
    }
    
@@ -238,7 +245,7 @@ boolean driveStraightAndScanForBarcode(unsigned int cm){
 void crossBarcode(){
    left.encoder_ticks=0;  //reset
    right.encoder_ticks=0;
-   driveStraightCentimeter(3, MAXSPEEDBARCODE);  //ANPASSEN!!!
+   driveStraightCentimeter(3, MAXSPEEDBARCODE, FWD);  //ANPASSEN!!!
    
  }
 
@@ -252,7 +259,7 @@ void task_scanBarcode(){
     if(driveStraightAndScanForBarcode(9)){
     barstate = onbar;
     }else{
-    current_state = error;
+    current_state = searchTimber;
     return;
     }
     break;
@@ -273,11 +280,35 @@ void task_scanBarcode(){
    }
 }
 
+
+void task_searchTimber(){
+  left.encoder_ticks=0;  //reset
+  right.encoder_ticks=0;
+  int counter = 0;
+  while (counter < 100){
+    driveStraight(MAXSPEEDBARCODE,FWD);
+    if(asuro.readSwitches() > 0){
+      counter++;
+    }
+  
+    
+    
+    
+  }
+  
+  current_state = stop;
+  
+  
+
+  
+  
+}
+
 void task_blinkNTimes(){
   asuro.setMotorDirection(BREAK,BREAK);
   if(barCount == 1){
     asuro.setBackLED(ON,ON);
-    delay(500);
+    delay(100);
     asuro.setBackLED(OFF,OFF);
     current_state = stop;
     return;
@@ -287,9 +318,9 @@ void task_blinkNTimes(){
   }else{
     for(int i=0; i<barCount; i++){
     asuro.setBackLED(ON,ON);
-    delay(500);
+    delay(100);
     asuro.setBackLED(OFF,OFF);
-    delay(500);
+    delay(100);
     }
   }
   current_state = findLine;
@@ -315,6 +346,7 @@ void task_default(){
 void setup() {
   asuro.Init();
   asuro.setFrontLED(ON);
+  asuro.setStatusLED(OFF);
   Serial.begin(2400);
   asuro.setMotorDirection(FWD,FWD);
 
@@ -341,6 +373,7 @@ void loop() {
       case searchLine: task_searchLine(); break;
       case scanBarcode: task_scanBarcode();  break;
       case blinkNTimes: task_blinkNTimes(); break;
+      case searchTimber: task_searchTimber(); break;
       case stop: task_stop(); break;
       case error: task_error();break;
       default: task_default();break; //this should not happen
