@@ -9,6 +9,10 @@ unsigned int line_data [2];
 int integral_diff;
 unsigned int current_speed[2];
 
+void p_regler(void){
+  asuro.readLinesensor(line_data);
+
+}
 void pi_regler(void){
   // read Sensors
 asuro.readLinesensor(line_data);

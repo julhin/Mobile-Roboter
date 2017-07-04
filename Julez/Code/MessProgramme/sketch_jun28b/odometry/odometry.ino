@@ -14,13 +14,17 @@ void setup(){
 }
 
 void loop(){
-
+  asuro.setMotorDirection(FWD,FWD);
+  asuro.setMotorSpeed(80,80);
   while(1){
-    asuro.readLinesensor(line_data);
+    for(int i = 0; i < 100; i++){
+    asuro.readOdometry(line_data);    
     Serial.print(line_data[0]);
     Serial.print(",");
     Serial.print(line_data[1]);
     Serial.print("\n");
     delay(1000);
   }
+  break;
+}
 }
