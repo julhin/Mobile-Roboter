@@ -2,7 +2,7 @@
 #define WHITETHRESHOLD 800  //has to be improved
 #define BARCODETHRESHOLD 450
 #define MINLINECONTRAST 80
-#define BARCODECONTRAST 30
+#define BARCODECONTRAST 10
 #define ODOTHRESHOLD 120
 #define BRIGHT 0
 #define DARK 1
@@ -13,7 +13,7 @@
 
 #define MAXSPEEDBARCODE 200
 #define PGAINFORWARD 2
-#define BARCODEDISTANCE 4
+#define BARCODEDISTANCE 5
 
 #define BREAKDELTA 120
 
@@ -22,7 +22,7 @@ enum STATES{followLine, searchLine,scanBarcode, blinkNTimes,stop, findLine, erro
 
 struct wheel {    // Struct for saving the state of the wheels
   unsigned int lastMax_val;      // Maxiler Hell ODER DUnkel Wert der letzten Messungen
-  unsigned int encoder_ticks;   // counter for brigth/dark transitions (60 = 1 Radumdrehung)
+  unsigned int encoder_ticks;   // counter for brigth/dark transitions (40 = 1 Radumdrehung)
   unsigned int flag;        //  current color
 };
 
@@ -238,7 +238,7 @@ boolean driveStraightAndScanForBarcode(unsigned int cm){
 void crossBarcode(){
    left.encoder_ticks=0;  //reset
    right.encoder_ticks=0;
-   driveStraightCentimeter(2, MAXSPEEDBARCODE);  //ANPASSEN!!!
+   driveStraightCentimeter(3, MAXSPEEDBARCODE);  //ANPASSEN!!!
    
  }
 
