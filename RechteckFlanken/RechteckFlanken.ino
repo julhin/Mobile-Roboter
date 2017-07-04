@@ -79,8 +79,10 @@ Asuro asuro = Asuro();
 
       //Speed regeln
      if(diff < 0 ){
+      diff = abs(diff);
       asuro.setMotorSpeed(MAXSPEED + PGAIN*diff,MAXSPEED - PGAIN*diff);
       }else{
+         diff = abs(diff);
        asuro.setMotorSpeed(MAXSPEED - PGAIN*diff,MAXSPEED + PGAIN*diff);
       }
       
@@ -100,7 +102,7 @@ Asuro asuro = Asuro();
         asuro.setMotorSpeed(0,MAXSPEED);
        
 
-     unsigned int encoderTicksSoll = 40;
+     unsigned int encoderTicksSoll = 35;
      unsigned int encoderTicksHaben = 0;
 
      
@@ -131,35 +133,43 @@ void loop() {
       
       fahreGeradeaus(40);
       asuro.setMotorSpeed(0,0);
+      asuro.setMotorDirection(BREAK,BREAK);
       delay(1000);
       
       fahre90GradLinks();
       asuro.setMotorSpeed(0,0);
+      asuro.setMotorDirection(BREAK,BREAK);
       delay(500);
       
       fahreGeradeaus(40);
       asuro.setMotorSpeed(0,0);
+       asuro.setMotorDirection(BREAK,BREAK);
        delay(1000);
        
       fahre90GradLinks();
       asuro.setMotorSpeed(0,0);
+       asuro.setMotorDirection(BREAK,BREAK);
       delay(500);
     
       fahreGeradeaus(40);
       asuro.setMotorSpeed(0,0);
+       asuro.setMotorDirection(BREAK,BREAK);
        delay(1000);
        
       fahre90GradLinks();
       asuro.setMotorSpeed(0,0);
+       asuro.setMotorDirection(BREAK,BREAK);
       delay(500);
       
       fahreGeradeaus(40);
       asuro.setMotorSpeed(0,0);
+       asuro.setMotorDirection(BREAK,BREAK);
       delay(1000);
        
       fahre90GradLinks();
       
       asuro.setMotorSpeed(0,0);
+       asuro.setMotorDirection(BREAK,BREAK);
       on = false;
        }
        

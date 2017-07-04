@@ -95,8 +95,10 @@ void loop() {
        * Hier ist der eigentliche P-Regler
        */
       if(diff < 0 ){
+        diff = abs(diff);
         asuro.setMotorSpeed(MAXSPEED + PGAIN*diff,MAXSPEED - PGAIN*diff);
       }else{
+         diff = abs(diff);
         asuro.setMotorSpeed(MAXSPEED - PGAIN*diff,MAXSPEED + PGAIN*diff);
       }
 

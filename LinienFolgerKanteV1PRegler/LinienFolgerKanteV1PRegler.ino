@@ -3,33 +3,12 @@
 /**
  * Those values need to be improved!
  */
-#define MAX_SPEED 130
-#define BREAK_DELTA 60
+#define MAX_SPEED 80
 #define LIGHT_DELTA 110 //has to be improved empiricallly
+#define PGAIN 0.5  //has to be improved empirically
 
   Asuro asuro = Asuro();
  
-  
- 
-
-  /**
-   * This function slows down a wheel (by using a break_delta vlaue) and
-   * sets  the speed of the other wheel to max_speed
-   * identifier = 0: left Wheel will be breaked
-   * identifier = 1: right Wheel will be breaked
-    */
- void breakWheel(unsigned int wheelSpeed[], unsigned int identifier){
-    
-    if (wheelSpeed[identifier] > BREAK_DELTA){
-      wheelSpeed[identifier] -= BREAK_DELTA;  // decelerate Wheel
-      
-    } else {
-     wheelSpeed[identifier] = 0;  // to prevent underflow
-    }
-
-    wheelSpeed[(identifier + 1)%2] = MAX_SPEED;  //change the speed of the other wheel to max speed
-  }
-
 
   /**
    * this function is a three-step-controler
@@ -58,11 +37,22 @@
       */
      }else{
         if(oldLineData[0] > oldLineData[1]){      // check previous calculation
-          breakWheel(wheelSpeed,1 );              //right turn / break right wheel
-          asuro.setBackLED(OFF,ON);      
+              
+          wheelSpeed[0] = MAX_SPEED + PGAIN*diff;  //right turn / break right wheel
+          wheelSpeed[1] = MAX_SPEED - PGAIN*diff;
+          asuro.setBackLED(OFF,ON);     
+          /*Serial.print("Wheelspeed links: ") ;
+          Serial.println(wheelSpeed[0]);
+          Serial.print("Wheelspeed rechts: ") ;
+          Serial.println(wheelSpeed[1]);*/
         }else{
-           breakWheel(wheelSpeed,0);             //left turn / break left wheel
-            asuro.setBackLED(ON,OFF);
+         wheelSpeed[0] = MAX_SPEED - PGAIN*diff;
+         wheelSpeed[1] = MAX_SPEED + PGAIN*diff;           //left turn / break left wheel
+         asuro.setBackLED(ON,OFF);
+          /*Serial.print("Wheelspeed links: ") ;
+          Serial.println(wheelSpeed[0]);
+          Serial.print("Wheelspeed rechts: ") ;
+          Serial.println(wheelSpeed[1]);*/
         }
                  
        
