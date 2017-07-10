@@ -94,33 +94,24 @@ void turnLeft(){
 }
 void turnRightBack(){
   asuro.readOdometry(old_odo_data);
-  // asuro on the move
   asuro.setMotorDirection(RWD,FWD);
   asuro.setMotorSpeed(BASE,0);
-  while(1){
-      asuro.readOdometry(odo_data);
+  asuro.readOdometry(odo_data);
       findTick(0);
       Serial.print(ticks[0]);
       if(ticks[0] > TICKS_ANGLE){
         // enough ticks, reset ticks, stop the asuro moving
-
         asuro.setMotorSpeed(0,0);
         ticks[0] = 0;
         ticks[1] = 0;
           return;
       }
-  }
-
-
-
 }
 void turnLeftBack(){
   asuro.readOdometry(old_odo_data);
-  // asuro on the move
   asuro.setMotorDirection(FWD,RWD);
   asuro.setMotorSpeed(0,BASE);
-  while(1){
-      asuro.readOdometry(odo_data);
+  asuro.readOdometry(odo_data);
       findTick(1);
       Serial.print(ticks[1]);
       if(ticks[1] > TICKS_ANGLE){
@@ -131,7 +122,7 @@ void turnLeftBack(){
         ticks[1] = 0;
           return;;
       }
-  }
+
 
 
 }
