@@ -34,6 +34,7 @@ enum ASURO_STATE{
   SCAN_BARCODE,
   SCAN_BARCODE_TRANS,
   BLINK,
+  FIND_TIMBER,
   STOP_ASURO
 };
 ASURO_STATE a_state;
@@ -49,12 +50,31 @@ TURN_STATE t_state;
 
 bool first;
 // TODO MAKE IT BETTER
+void find_Timber(){
+  asuro.setMotorSpeed(BASE-20,BASE-20);
+  if (asuro.readSwitches() > 0){
+    a_state = STOP_ASURO;
+    asuro.setMotorSpeed(0,0);
+  }
+}
 void stop_asuro(){
   asuro.setMotorSpeed(0,0);
   asuro.setStatusLED(GREEN);
 }
 void find_line(){
+
   asuro.setMotorSpeed(BASE,BASE);
+  asuro.readLinesensor(l_data);
+  asuro.readOdometry(odo_data);
+  findTick(0);
+  findTick(1);
+
+  if (is_on_line()){
+    a_state = FOLLOW_LINE;
+  }
+  if (ticks[0] + ticks[1] > 35){
+    a_state = FIND_TIMBER;
+  }
   }
 void stop(){
   asuro.setMotorSpeed(0,0);
@@ -286,8 +306,9 @@ void loop(){
   b_state = BRIGHT;
   a_state = SEARCH_LINE;
   t_state = LEFT;
-  first = true;
+
   asuro.readOdometry(old_odo_data);
+
   while(1){
   switch(a_state){
   case  FIND_LINE: find_line();
@@ -296,16 +317,14 @@ void loop(){
   asuro.readOdometry(old_odo_data);
   ticks[0] = 0;
   ticks[1] = 0;
+  a_state = SEARCH_LINE;
   case SEARCH_LINE:
-  // reset all values
   searchLineRoutine();
   break;
   case  FOLLOW_LINE:
-
    p_regler();
   break;
   case  SCAN_BARCODE_TRANS:
-
   barcode_count = 0;
   ticks_since_last_dark = 0;
   b_state = BRIGHT;

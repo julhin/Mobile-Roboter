@@ -8,6 +8,7 @@
 #define DARK 100
 #define WHITE 800
 #define LINE_CONTRAST 80
+
 Asuro asuro = Asuro();
 
 unsigned int l_data[2];
@@ -208,7 +209,6 @@ void setup(){
     a_state = SEARCH_LINE;
     t_state = LEFT;
     asuro.setMotorDirection(FWD,FWD);
-
     while(1){
       if (a_state = SEARCH_LINE){
         searchLineRoutine();
