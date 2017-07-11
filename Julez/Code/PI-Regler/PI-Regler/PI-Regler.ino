@@ -35,12 +35,9 @@ void setup() {
   delay(200);
   Serial.begin(2400);
   delay(200);
-  integral_diff = 0;
-  current_speed[0] = BASE;
-  current_speed[1] = BASE;
-  asuro.setMotorDirection(FWD,FWD);
-  asuro.setMotorSpeed(BASE,BASE);
-  asuro.setFrontLED(ON);
+  
+
+
 }
 
 void loop() {
