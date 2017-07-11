@@ -1,14 +1,14 @@
 #include <Asuro.h>
-/* Values need adjustment*/
-// P regler funktioniert bei mir besser als der Bauern ansatz
-//
+
 #define KP 0.2
 #define BASE 100
-#define TICKS_ANGLE 30
+#define TICKS_ANGLE 40
 #define ODOTHRESHOLD 80
 #define MAX_BARCODE_DISTANCE 10
 #define DARK 100
 #define WHITE 800
+#define LINE_CONTRAST 80
+
 Asuro asuro = Asuro();
 
 unsigned int l_data[2];
@@ -29,36 +29,46 @@ BARCODE_STATE b_state;
 enum ASURO_STATE{
   FIND_LINE,
   SEARCH_LINE,
+  SEARCH_LINE_TRANS,
   FOLLOW_LINE,
   SCAN_BARCODE,
+  SCAN_BARCODE_TRANS,
   BLINK,
   STOP_ASURO
 };
 ASURO_STATE a_state;
-void find_line(){
-  // drive 4 cm forward, then search the line , an dso on
-  asuro.setMotorSpeed(BASE,BASE);
+enum TURN_STATE{
+  LEFT_TURN,
+  LEFT_TURN_BACK,
+  RIGHT_TURN,
+  RIGHT_TURN_BACK,
+  STOP_TURNING_SCAN,
+  STOP_TURNING_FOLLOW
+};
+TURN_STATE t_state;
+
+bool first;
+// TODO MAKE IT BETTER
+void stop_asuro(){
+  asuro.setMotorSpeed(0,0);
+  asuro.setStatusLED(GREEN);
 }
+void find_line(){
+  asuro.setMotorSpeed(BASE,BASE);
+  }
 void stop(){
   asuro.setMotorSpeed(0,0);
   asuro.setStatusLED(GREEN);
 }
-void searchLineRoutine(){
-  // turn left
-  turnLeft();
-  if (a_state != SEARCH_LINE) return;
-  turnLeftBack();
-  if (a_state != SEARCH_LINE) return;
-  turnRight();
-  if (a_state != SEARCH_LINE) return;
-  turnRightBack();
-  // turn left back
-  a_state = SCAN_BARCODE;
-  //
-}
 bool is_on_line(){
     asuro.readLinesensor(l_data);
-    if(l_data[0] < DARK & l_data[1] < DARK)
+  //  Serial.print(l_data[0]);
+  //  Serial.print(",");
+  //  Serial.print(l_data[1]);
+  //  Serial.print("\n");
+    int diff = l_data[0] - l_data[1];
+    diff = abs(diff);
+    if(l_data[0] + l_data[1] < WHITE)
   return true;
   return false;
 }
@@ -72,13 +82,16 @@ void findTick(int id){
   old_odo_data[id] = odo_data[id];
 }
 void scanBarcode(){
+  asuro.setMotorSpeed(BASE-20,BASE-20);
   switch(b_state){
   case BRIGHT:
   //TODO read Switches to determine if the end is reached
+  asuro.setStatusLED(YELLOW);
   asuro.readOdometry(odo_data);
   findTick(0);
   findTick(1);
   ticks_since_last_dark = ticks[0] + ticks[1];
+  Serial.print(ticks_since_last_dark);
   if (ticks_since_last_dark > MAX_BARCODE_DISTANCE){
     //end reached
     b_state = STOP;
@@ -92,6 +105,7 @@ void scanBarcode(){
 
   case BLACK:
   if (!is_on_line()){
+    asuro.setStatusLED(GREEN);
     barcode_count++;
     b_state = BRIGHT;
   }
@@ -108,7 +122,13 @@ void scanBarcode(){
   }
 void blink_N_Times(){
   asuro.setStatusLED(GREEN);
-  Serial.print("Blinken");
+ //  Serial.print("Blinken");
+ //  Serial.print("\n");
+ Serial.print("COUNT: ");
+  Serial.print(barcode_count);
+ //  Serial.print("\n");
+
+  delay(1000);
   for(int i = 0; i < barcode_count; i++){
     asuro.setBackLED(ON,ON);
     delay(500);
@@ -117,99 +137,121 @@ void blink_N_Times(){
   }
   a_state = FIND_LINE;
   delay(500);
-}
+ }
 void turnRight(){
-  asuro.readOdometry(old_odo_data);
+  asuro.readOdometry(odo_data);
   // asuro on the move
   asuro.setMotorDirection(FWD,FWD);
   asuro.setMotorSpeed(BASE,0);
-  if (l_data[0] < DARK){
-    a_state = FOLLOW_LINE;
+  if (is_on_line()){
+  //  a_state = FOLLOW_LINE;
     asuro.setMotorSpeed(0,0);
+    t_state = STOP_TURNING_FOLLOW;
     return;
   }
       asuro.readOdometry(odo_data);
       findTick(0);
       Serial.print(ticks[0]);
+      Serial.print("\n");
       if(ticks[0] > TICKS_ANGLE){
         // enough ticks, reset ticks, stop the asuro moving
-        Serial.print("Hello");
+
         asuro.setMotorSpeed(0,0);
         ticks[0] = 0;
         ticks[1] = 0;
+        t_state = RIGHT_TURN_BACK;
           return;
       }
 
-  asuro.setStatusLED(YELLOW);
-  delay (500);
 }
 void turnLeft(){
-
   // asuro on the move
   asuro.setMotorDirection(FWD,FWD);
   asuro.setMotorSpeed(0,BASE);
   // right sensor sees black = line found
   asuro.readLinesensor(l_data);
-  if (l_data[1] < DARK){
-    a_state = FOLLOW_LINE;
+  if (l_data[1] + l_data[0] < WHITE){
+    asuro.setStatusLED(RED);
+    t_state = STOP_TURNING_FOLLOW;
     asuro.setMotorSpeed(0,0);
     return;
   }
-      asuro.readOdometry(odo_data);
-      findTick(1);
-      Serial.print(ticks[1]);
+        asuro.readOdometry(odo_data);
+        findTick(1);
+        Serial.print(ticks[1]);
+        Serial.print("\n");
       if(ticks[1] > TICKS_ANGLE){
         // enough ticks, reset ticks, stop the asuro moving
-        Serial.print("Hello");
-        asuro.setStatusLED(RED);
+
         asuro.setMotorSpeed(0,0);
         ticks[0] = 0;
         ticks[1] = 0;
+        t_state = LEFT_TURN_BACK;
         return;
       }
 
 
 }
 void turnRightBack(){
-  asuro.readOdometry(old_odo_data);
-  // asuro on the move
+
   asuro.setMotorDirection(RWD,FWD);
   asuro.setMotorSpeed(BASE,0);
-  while(1){
-      asuro.readOdometry(odo_data);
-      findTick(0);
-      Serial.print(ticks[0]);
+  asuro.readOdometry(odo_data);
+  findTick(0);
+  Serial.print(ticks[1]);
+  Serial.print("\n");
       if(ticks[0] > TICKS_ANGLE){
         // enough ticks, reset ticks, stop the asuro moving
-        Serial.print("Hello");
         asuro.setMotorSpeed(0,0);
         ticks[0] = 0;
         ticks[1] = 0;
-          return;
+        t_state = STOP_TURNING_SCAN;
+        return;
       }
-  }
-  asuro.setStatusLED(YELLOW);
-  delay (500);
-
 }
 void turnLeftBack(){
-  asuro.readOdometry(old_odo_data);
-  // asuro on the move
+  asuro.readOdometry(odo_data);
   asuro.setMotorDirection(FWD,RWD);
   asuro.setMotorSpeed(0,BASE);
-  while(1){
-      asuro.readOdometry(odo_data);
+  asuro.readOdometry(odo_data);
       findTick(1);
       Serial.print(ticks[1]);
+      Serial.print("\n");
       if(ticks[1] > TICKS_ANGLE){
         // enough ticks, reset ticks, stop the asuro moving
-        Serial.print("Hello");
-        asuro.setMotorSpeed(0,0);
-        ticks[0] = 0;
-        ticks[1] = 0;
-          return;;
+          asuro.setMotorSpeed(0,0);
+          ticks[0] = 0;
+          ticks[1] = 0;
+          t_state = RIGHT_TURN;
+          return;
       }
+    }
+void searchLineRoutine(){
+  // turn left
+  switch(t_state){
+  case LEFT_TURN:
+  turnLeft();
+  break;
+  case LEFT_TURN_BACK:
+  turnLeftBack();
+  break;
+  case RIGHT_TURN:
+  turnRight();
+  break;
+  case RIGHT_TURN_BACK:
+  turnRightBack();
+  break;
+  case STOP_TURNING_SCAN:
+    a_state = SCAN_BARCODE_TRANS;
+    asuro.setMotorSpeed(0,0);
+  case STOP_TURNING_FOLLOW:
+  a_state = FOLLOW_LINE;
+  asuro.setMotorSpeed(0,0);
+  default:
+  asuro.setMotorSpeed(0,0);
+  asuro.setBackLED(ON,ON);
   }
+  //
   asuro.setStatusLED(YELLOW);
   delay (500);
 
@@ -217,7 +259,7 @@ void turnLeftBack(){
 void p_regler(){
   asuro.readLinesensor(l_data);
   if (l_data[0] > WHITE && l_data[1] > WHITE){
-      a_state = SEARCH_LINE;
+      a_state = SEARCH_LINE_TRANS;
       asuro.setMotorSpeed(0,0);
   } else {
   int diff = l_data[0] - l_data[1];
@@ -238,35 +280,46 @@ void setup(){
 void loop(){
   ticks[0] = 0;
   ticks[1] = 0;
-
   speed[0] = BASE;
   speed[1] = BASE;
-  b_state = BRIGHT;
-  //TODO : test purposes
-  a_state =SEARCH_LINE;
   barcode_count = 0;
-  asuro.setMotorDirection(FWD,FWD);
-  asuro.setStatusLED(GREEN);
-  asuro.setMotorSpeed(BASE,BASE);
+  b_state = BRIGHT;
+  a_state = SEARCH_LINE;
+  t_state = LEFT;
+  first = true;
   asuro.readOdometry(old_odo_data);
   while(1){
   switch(a_state){
-    //functio nmissing
   case  FIND_LINE: find_line();
   break;
-  // TODO: test
-  case SEARCH_LINE: searchLineRoutine();
+  case SEARCH_LINE_TRANS:
+  asuro.readOdometry(old_odo_data);
+  ticks[0] = 0;
+  ticks[1] = 0;
+  case SEARCH_LINE:
+  // reset all values
+  searchLineRoutine();
   break;
-  // TODO : test
-  case  FOLLOW_LINE: p_regler();
+  case  FOLLOW_LINE:
+
+   p_regler();
   break;
-  // TODO : test
-  case  SCAN_BARCODE:scanBarcode();
+  case  SCAN_BARCODE_TRANS:
+
+  barcode_count = 0;
+  ticks_since_last_dark = 0;
+  b_state = BRIGHT;
+  a_state = SCAN_BARCODE;
+  case SCAN_BARCODE:
+  scanBarcode();
   break;
-  case  BLINK: blink_N_Times();
+  case  BLINK:
+
+  blink_N_Times();
   break;
-  case  STOP_ASURO: stop();
+  case  STOP_ASURO: stop_asuro();
   break;
+
   }
   }
   }

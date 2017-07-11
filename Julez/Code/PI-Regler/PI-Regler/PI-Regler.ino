@@ -47,8 +47,8 @@ void loop() {
 // make the Asuro Move
 
 while(1){
-  pi_regler();
-  asuro.setMotorSpeed(current_speed[0],current_speed[1]);
+  asuro.setMotorDirection(FWD,FWD);
+  asuro.setMotorSpeed(200,200);
 }
 
 }
